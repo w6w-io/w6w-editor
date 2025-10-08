@@ -1,0 +1,92 @@
+{
+  "name": "@w6w/editor",
+  "version": "0.1.0",
+  "description": "Visual workflow editor component for W6W",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles": "./dist/styles.css"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "keywords": [
+    "workflow",
+    "editor",
+    "visual-editor",
+    "react",
+    "canvas",
+    "drag-and-drop",
+    "workflow-engine"
+  ],
+  "author": "W6W Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/w6w-io/editor.git",
+    "directory": "packages/editor"
+  },
+  "bugs": {
+    "url": "https://github.com/w6w-io/editor/issues"
+  },
+  "homepage": "https://github.com/w6w-io/editor/tree/main/packages/editor#readme",
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.9.0",
+    "@xyflow/react": "^12.8.6"
+  },
+  "devDependencies": {
+    "@chromatic-com/storybook": "^4.1.1",
+    "@storybook/addon-essentials": "^8.6.14",
+    "@storybook/addon-interactions": "^8.6.14",
+    "@storybook/addon-links": "^9.1.10",
+    "@storybook/addon-onboarding": "^9.1.10",
+    "@storybook/blocks": "^8.6.14",
+    "@storybook/react": "^9.1.10",
+    "@storybook/react-vite": "^9.1.10",
+    "@storybook/test": "^8.6.14",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@typescript-eslint/eslint-plugin": "catalog:",
+    "@typescript-eslint/parser": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-react-hooks": "catalog:",
+    "eslint-plugin-react-refresh": "catalog:",
+    "eslint-plugin-storybook": "^9.1.10",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "storybook": "^9.1.10",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-dts": "catalog:",
+    "vitest": "catalog:"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

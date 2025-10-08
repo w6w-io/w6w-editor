@@ -1,0 +1,36 @@
+{
+  "name": "@w6w/monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "W6W Editor monorepo - Visual workflow editor",
+  "packageManager": "pnpm@10.18.1",
+  "engines": {
+    "node": ">=22.20.0",
+    "pnpm": ">=10.18.1"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "clean": "pnpm -r clean"
+  },
+  "keywords": [
+    "workflow",
+    "editor",
+    "visual-editor",
+    "canvas",
+    "drag-and-drop",
+    "monorepo"
+  ],
+  "author": "W6W Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/w6w-io/editor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/w6w-io/editor/issues"
+  },
+  "homepage": "https://github.com/w6w-io/editor#readme"
+}
