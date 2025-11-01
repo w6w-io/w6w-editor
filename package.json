@@ -32,5 +32,11 @@
   "bugs": {
     "url": "https://github.com/w6w-io/editor/issues"
   },
-  "homepage": "https://github.com/w6w-io/editor#readme"
+  "homepage": "https://github.com/w6w-io/editor#readme",
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
+    "eslint": "catalog:"
+  }
 }

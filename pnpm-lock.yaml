@@ -51,7 +51,20 @@ catalogs:
 
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      eslint:
+        specifier: 'catalog:'
+        version: 9.37.0
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vite:
+        specifier: 'catalog:'
+        version: 7.1.9
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.4
 
   packages/editor:
     dependencies:
@@ -98,9 +111,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: 'catalog:'
         version: 5.0.4(vite@7.1.9)
-      eslint:
-        specifier: 'catalog:'
-        version: 9.37.0
       eslint-plugin-react-hooks:
         specifier: 'catalog:'
         version: 7.0.0(eslint@9.37.0)
@@ -119,18 +129,11 @@ importers:
       storybook:
         specifier: ^8.6.14
         version: 8.6.14
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vite:
-        specifier: 'catalog:'
-        version: 7.1.9
       vite-plugin-dts:
         specifier: 'catalog:'
         version: 4.5.4(rollup@4.52.4)(typescript@5.9.3)(vite@7.1.9)
-      vitest:
-        specifier: 'catalog:'
-        version: 3.2.4
+
+  packages/types: {}
 
 packages:
 
