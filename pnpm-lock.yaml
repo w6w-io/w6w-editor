@@ -133,6 +133,12 @@ importers:
         specifier: 'catalog:'
         version: 4.5.4(rollup@4.52.4)(typescript@5.9.3)(vite@7.1.9)
 
+  packages/schema:
+    dependencies:
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
+
   packages/types: {}
 
 packages:

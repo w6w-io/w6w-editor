@@ -1,0 +1,15 @@
+{
+    "name": "@w6w-io/schema",
+    "version": "1.0.0.alpha-1",
+    "description": "JSON Schema definitions for W6W (Workflow) components and configurations",
+    "scripts": {
+        "generate-schemas": "tsx scripts/generate-json-schemas.ts",
+        "build": "npm run generate-schemas"
+    },
+    "dependencies": {
+        "zod": "^4.1.12"
+    },
+    "devDependencies": {
+        "tsx": "^4.19.2"
+    }
+}
