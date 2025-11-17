@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { WorkflowEditor } from './WorkflowEditor';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { WorkflowEditor } from '../WorkflowEditor';
 
 const meta = {
   title: 'Components/WorkflowEditor',

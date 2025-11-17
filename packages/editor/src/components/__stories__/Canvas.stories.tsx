@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Canvas } from './Canvas';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Canvas } from '../Canvas';
 import { BackgroundVariant } from '@xyflow/react';
 
 const meta = {

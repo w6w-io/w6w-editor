@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Node } from './Node';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Node } from '../Node';
 
 const meta = {
   title: 'Elements/Node',

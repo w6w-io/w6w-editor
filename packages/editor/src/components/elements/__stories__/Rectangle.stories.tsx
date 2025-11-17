@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Rectangle } from './Rectangle';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Rectangle } from '../Rectangle';
 
 const meta = {
   title: 'Elements/Rectangle',
