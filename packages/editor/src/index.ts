@@ -13,5 +13,9 @@ export type { CanvasProps } from './components/Canvas';
 export { Rectangle, Node as WorkflowNode } from './components/elements';
 export type { RectangleProps, NodeProps as WorkflowNodeProps } from './components/elements';
 
+// Export UI components
+export { ContextMenu } from './components/ui';
+export type { ContextMenuItem, ContextMenuProps } from './components/ui';
+
 // Export types
 export type { Workflow, Node, Edge } from './types';
