@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { idSchema } from './id';
 import { positionSchema } from './position';
 import { CONSTS } from './consts';
+import { propertySchema } from './property';
 
 export const nodeTypeEnum = z.enum([
     'trigger',
@@ -13,6 +14,8 @@ export const nodeTypeEnum = z.enum([
 
 export const nodeSchema = z.object({
     id: idSchema(CONSTS.idPrefix.node),
+
+    properties:   z.array(propertySchema).describe("List of properties associated with the credential").optional(),
 
     type: nodeTypeEnum.describe('Type of the node, e.g., trigger, action, transform'),
 
