@@ -12,10 +12,15 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./styles": "./dist/styles.css"
+    "./styles.css": {
+      "types": "./src/styles.css.d.ts",
+      "default": "./src/styles.css"
+    }
   },
   "files": [
     "dist",
+    "src/styles.css",
+    "src/styles.css.d.ts",
     "README.md",
     "LICENSE"
   ],
@@ -57,9 +62,11 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.0",
-    "@w6w-io/schema": "workspace:^",
     "@xyflow/react": "^12.8.6",
     "zod": "^4.1.12"
+  },
+  "optionalDependencies": {
+    "@w6w-io/schema": "workspace:^"
   },
   "devDependencies": {
     "@storybook/addon-links": "^10.0.8",
