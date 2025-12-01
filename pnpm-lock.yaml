@@ -71,9 +71,6 @@ importers:
       '@reduxjs/toolkit':
         specifier: ^2.9.0
         version: 2.9.0(react@19.2.0)
-      '@w6w-io/schema':
-        specifier: workspace:^
-        version: link:../schema
       '@xyflow/react':
         specifier: ^12.8.6
         version: 12.8.6(@types/react@19.2.2)(immer@10.1.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -126,6 +123,10 @@ importers:
       vite-plugin-dts:
         specifier: 'catalog:'
         version: 4.5.4(rollup@4.52.4)(typescript@5.9.3)(vite@7.1.9(tsx@4.20.6))
+    optionalDependencies:
+      '@w6w-io/schema':
+        specifier: workspace:^
+        version: link:../schema
 
   packages/schema:
     dependencies:
