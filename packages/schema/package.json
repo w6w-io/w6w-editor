@@ -13,8 +13,7 @@
         }
     },
     "scripts": {
-        "generate-schemas": "tsx scripts/generate-json-schemas.ts",
-        "build": "npm run generate-schemas"
+        "build": "echo 'No build step needed - exporting Zod schemas directly'"
     },
     "dependencies": {
         "zod": "^4.1.12"
