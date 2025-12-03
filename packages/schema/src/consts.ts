@@ -3,7 +3,8 @@ export const CONSTS = {
         node: 'nd',
         edge: 'ed',
         workflow: 'wf',
-        connection: 'cn'
+        connection: 'cn',
+        execution: 'ex'
     }
 
 }
