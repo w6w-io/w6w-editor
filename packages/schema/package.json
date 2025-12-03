@@ -3,42 +3,49 @@
     "version": "1.0.0-alpha.1",
     "description": "JSON Schema definitions for W6W (Workflow) components and configurations",
     "type": "module",
-    "main": "./src/index.ts",
-    "module": "./src/index.ts",
-    "types": "./src/index.ts",
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "exports": {
         ".": {
-            "types": "./src/index.ts",
-            "import": "./src/index.ts"
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
         },
-        "./workflow.ts": {
-            "types": "./src/workflow.ts",
-            "import": "./src/workflow.ts"
+        "./workflow": {
+            "types": "./dist/workflow.d.ts",
+            "import": "./dist/workflow.js"
         },
-        "./node.ts": {
-            "types": "./src/node.ts",
-            "import": "./src/node.ts"
+        "./node": {
+            "types": "./dist/node.d.ts",
+            "import": "./dist/node.js"
         },
-        "./edge.ts": {
-            "types": "./src/edge.ts",
-            "import": "./src/edge.ts"
+        "./edge": {
+            "types": "./dist/edge.d.ts",
+            "import": "./dist/edge.js"
         },
-        "./variable.ts": {
-            "types": "./src/variable.ts",
-            "import": "./src/variable.ts"
+        "./variable": {
+            "types": "./dist/variable.d.ts",
+            "import": "./dist/variable.js"
         },
-        "./execution-log.ts": {
-            "types": "./src/execution-log.ts",
-            "import": "./src/execution-log.ts"
+        "./execution-log": {
+            "types": "./dist/execution-log.d.ts",
+            "import": "./dist/execution-log.js"
         }
     },
+    "files": [
+        "dist",
+        "README.md"
+    ],
     "scripts": {
-        "build": "echo 'No build step needed - exporting Zod schemas directly'"
+        "clean": "rm -rf dist",
+        "build": "pnpm clean && tsc",
+        "prepublishOnly": "pnpm build"
     },
     "dependencies": {
         "zod": "^4.1.12"
     },
     "devDependencies": {
-        "tsx": "^4.19.2"
+        "tsx": "^4.19.2",
+        "typescript": "catalog:"
     }
 }
