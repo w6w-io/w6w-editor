@@ -1,0 +1,76 @@
+{
+    "id": "wf_jb_send_emails",
+    "name": "JB order confirmation",
+    "description": "Automatically sends confirmation email when a new order is placed",
+    "version": "1.0.0",
+    "status": "active",
+    "tags": [
+        "email",
+        "customer_communication",
+        "order"
+    ],
+    "nodes": [
+        {
+            "id": "nd_trigger",
+            "type": "trigger",
+            "package": "core",
+            "app": "core",
+            "version": "1.0.0",
+            "action": "order.placed",
+            "label": "Order Placed",
+            "position": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        {
+            "id": "nd_load_template",
+            "type": "action",
+            "package": "handlebars",
+            "app": "handlebars",
+            "version": "1.0.0",
+            "action": "parseTemplateAsset",
+            "label": "Load email template",
+            "config": {
+                "assetId": "hdDD6HfwbP7xTfosx79U"
+            },
+            "position": {
+                "x": 200,
+                "y": 0
+            }
+        },
+        {
+            "id": "nd_send_email",
+            "type": "action",
+            "package": "sendgrid",
+            "app": "sendgrid",
+            "version": "1.0.0",
+            "action": "send_email",
+            "label": "Send Email",
+            "config": {
+                "bcc": "receipts@joonbug.com",
+                "content": {
+                    "html": "{{{nd_load_template.output.html}}}"
+                },
+                "subject": "{{nd_load_template.output.subject}}",
+                "to": "{{nd_trigger.output.customer.email}}"
+            },
+            "position": {
+                "x": 400,
+                "y": 0
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "ed_trigger_load",
+            "source": "nd_trigger",
+            "target": "nd_load_template"
+        },
+        {
+            "id": "ed_load_send",
+            "source": "nd_load_template",
+            "target": "nd_send_email"
+        }
+    ]
+}
