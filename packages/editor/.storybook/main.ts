@@ -7,7 +7,13 @@ const config: StorybookConfig = {
   framework: {
     name: '@storybook/react-vite',
     options: {},
-  }
+  },
+
+  viteFinal: async (config) => {
+    // Fix for VS Code port forwarding - use absolute paths
+    config.base = '/';
+    return config;
+  },
 };
 
 export default config;

@@ -33,7 +33,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist node_modules",
-    "storybook": "storybook dev -p 6006",
+    "storybook": "storybook dev -p 6006 --host 0.0.0.0 --no-open",
     "build-storybook": "storybook build"
   },
   "keywords": [
@@ -69,8 +69,9 @@
     "@w6w-io/schema": "workspace:^"
   },
   "devDependencies": {
-    "@storybook/addon-links": "^10.0.8",
-    "@storybook/react-vite": "^10.0.8",
+    "@storybook/addon-docs": "^10.1.6",
+    "@storybook/addon-links": "^10.1.6",
+    "@storybook/react-vite": "^10.1.6",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
@@ -78,12 +79,11 @@
     "@vitejs/plugin-react": "catalog:",
     "eslint-plugin-react-hooks": "catalog:",
     "eslint-plugin-react-refresh": "catalog:",
-    "eslint-plugin-storybook": "^10.0.8",
+    "eslint-plugin-storybook": "^10.1.6",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "storybook": "^10.0.8",
-    "vite-plugin-dts": "catalog:",
-    "@storybook/addon-docs": "^10.0.8"
+    "storybook": "^10.1.6",
+    "vite-plugin-dts": "catalog:"
   },
   "publishConfig": {
     "access": "public"
