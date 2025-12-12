@@ -1,4 +1,4 @@
-import { type FC, useCallback, useState, forwardRef, useImperativeHandle } from 'react';
+import { useCallback, useState, forwardRef, useImperativeHandle } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,

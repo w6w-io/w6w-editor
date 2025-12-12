@@ -1,4 +1,4 @@
-import { useCallback, useState, useImperativeHandle, forwardRef, useRef, useMemo } from 'react';
+import { useCallback, useState, useImperativeHandle, forwardRef, useRef } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -103,6 +103,8 @@ const CanvasInner = forwardRef<CanvasHandle, CanvasProps>(({
   onNodeDuplicate,
   onNodeDelete,
   onConnectionDropped,
+  onEdgeCreated,
+  edgeValidation,
 }, ref) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -188,8 +190,13 @@ const CanvasInner = forwardRef<CanvasHandle, CanvasProps>(({
         destructive: true,
         onClick: () => {
           const newNodes = nodes.filter((n) => n.id !== node.id);
+          // Remove all edges connected to this node
+          const newEdges = edges.filter(
+            (e) => e.source !== node.id && e.target !== node.id
+          );
           setNodes(newNodes);
-          onChange?.(newNodes, edges);
+          setEdges(newEdges);
+          onChange?.(newNodes, newEdges);
         },
       });
     }
@@ -199,7 +206,7 @@ const CanvasInner = forwardRef<CanvasHandle, CanvasProps>(({
       y: event.clientY,
       items: menuItems,
     });
-  }, [nodes, edges, setNodes, onChange, onNodeEdit, onNodeDuplicate, onNodeDelete]);
+  }, [nodes, edges, setNodes, setEdges, onChange, onNodeEdit, onNodeDuplicate, onNodeDelete]);
 
   // Handle context menu on edge
   const onEdgeContextMenu = useCallback((event: any, edge: Edge) => {
@@ -225,11 +232,60 @@ const CanvasInner = forwardRef<CanvasHandle, CanvasProps>(({
 
   const onConnect = useCallback(
     (params: Connection) => {
+      // Prevent self-connections (unless explicitly allowed)
+      if (!edgeValidation?.allowSelfConnections && params.source === params.target) {
+        console.warn('Self-connections are not allowed');
+        return;
+      }
+
+      // Prevent duplicate edges (unless explicitly allowed)
+      if (!edgeValidation?.allowDuplicates) {
+        const isDuplicate = edges.some(
+          (e) =>
+            e.source === params.source &&
+            e.target === params.target &&
+            e.sourceHandle === params.sourceHandle &&
+            e.targetHandle === params.targetHandle
+        );
+        if (isDuplicate) {
+          console.warn('Duplicate edge already exists');
+          return;
+        }
+      }
+
+      // Apply custom validation if provided
+      if (edgeValidation?.customValidator) {
+        const isValid = edgeValidation.customValidator(
+          {
+            source: params.source || '',
+            target: params.target || '',
+            sourceHandle: params.sourceHandle,
+            targetHandle: params.targetHandle,
+          },
+          nodes,
+          edges
+        );
+        if (!isValid) {
+          console.warn('Connection rejected by custom validator');
+          return;
+        }
+      }
+
       const newEdges = addEdge(params, edges);
       setEdges(newEdges);
       onChange?.(nodes, newEdges);
+
+      // Call onEdgeCreated callback if provided
+      if (onEdgeCreated) {
+        onEdgeCreated({
+          source: params.source || '',
+          target: params.target || '',
+          sourceHandle: params.sourceHandle,
+          targetHandle: params.targetHandle,
+        });
+      }
     },
-    [edges, nodes, onChange, setEdges]
+    [edges, nodes, onChange, setEdges, onEdgeCreated, edgeValidation]
   );
 
   const onConnectEnd = useCallback(
