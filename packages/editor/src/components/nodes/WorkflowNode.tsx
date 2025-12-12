@@ -16,6 +16,9 @@ export type WorkflowNodeData = {
   onDelete?: (nodeId: string) => void;
   onEdit?: (nodeId: string) => void;
   onDuplicate?: (nodeId: string) => void;
+  onAddNode?: (nodeId: string, handleType: 'source' | 'target', handleId?: string) => void;
+  hasInputConnection?: boolean;
+  hasOutputConnection?: boolean;
   [key: string]: unknown;
 };
 
@@ -144,6 +147,38 @@ export const WorkflowNode: FC<XYNodeProps<WorkflowNodeType>> = memo(({ id, data,
           }}
         />
       ))}
+
+      {/* Add node buttons for unconnected handles */}
+      {data.onAddNode && !data.hasInputConnection && (
+        <button
+          className="add-node-button add-node-button-left"
+          onClick={(e) => {
+            e.stopPropagation();
+            data.onAddNode?.(id, 'target');
+          }}
+          title="Add node before"
+          aria-label="Add node before"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+      )}
+      {data.onAddNode && !data.hasOutputConnection && (
+        <button
+          className="add-node-button add-node-button-right"
+          onClick={(e) => {
+            e.stopPropagation();
+            data.onAddNode?.(id, 'source');
+          }}
+          title="Add node after"
+          aria-label="Add node after"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 });
