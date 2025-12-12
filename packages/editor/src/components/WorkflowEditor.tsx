@@ -68,6 +68,18 @@ export interface WorkflowEditorProps extends ContextMenuCallbacks {
    * @default 'light'
    */
   colorMode?: 'light' | 'dark' | 'system';
+  /**
+   * Callback when a node is deleted
+   */
+  onNodeDelete?: (nodeId: string) => void;
+  /**
+   * Callback when a node is edited
+   */
+  onNodeEdit?: (nodeId: string) => void;
+  /**
+   * Callback when a node is duplicated
+   */
+  onNodeDuplicate?: (nodeId: string) => void;
 }
 
 // Define custom node types outside component to prevent re-renders
@@ -88,9 +100,24 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
   showBackground = true,
   colorMode = 'light',
   onConnectionDropped,
+  onNodeDelete,
+  onNodeEdit,
+  onNodeDuplicate,
 }, ref) => {
   const isDark = colorMode === 'dark' || (colorMode === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialWorkflow.nodes as Node[]);
+
+  // Enrich initial nodes with callbacks
+  const enrichedInitialNodes = initialWorkflow.nodes.map((node: Node) => ({
+    ...node,
+    data: {
+      ...node.data,
+      onDelete: onNodeDelete,
+      onEdit: onNodeEdit,
+      onDuplicate: onNodeDuplicate,
+    },
+  }));
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(enrichedInitialNodes as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialWorkflow.edges as Edge[]);
   const { screenToFlowPosition } = useReactFlow();
   const viewport = useViewport();
@@ -195,11 +222,17 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
       }
 
       // Create the new node at the pending connection position
+      // Enrich with callbacks
       const newNode: Node = {
         id: nodeId,
         type: nodeType,
         position: pendingConnection.position,
-        data: nodeData,
+        data: {
+          ...nodeData,
+          onDelete: onNodeDelete,
+          onEdit: onNodeEdit,
+          onDuplicate: onNodeDuplicate,
+        },
       };
 
       const newNodes = [...nodes, newNode];
@@ -221,7 +254,7 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
       // Notify parent of changes
       onChange?.({ nodes: newNodes, edges: newEdges });
     },
-    [pendingConnection, nodes, edges, setNodes, setEdges, onChange]
+    [pendingConnection, nodes, edges, setNodes, setEdges, onChange, onNodeDelete, onNodeEdit, onNodeDuplicate]
   );
 
   // Method to cancel a pending connection without creating a node

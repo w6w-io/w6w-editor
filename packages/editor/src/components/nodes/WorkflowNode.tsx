@@ -1,5 +1,6 @@
 import { type FC, memo, useMemo } from 'react';
 import { Handle, Position, type NodeProps as XYNodeProps, type Node } from '@xyflow/react';
+import { NodeActionToolbar } from '../ui/NodeActionToolbar';
 
 export type WorkflowNodeData = {
   label?: string;
@@ -12,6 +13,9 @@ export type WorkflowNodeData = {
   notes?: string;
   input?: string[];
   output?: string[];
+  onDelete?: (nodeId: string) => void;
+  onEdit?: (nodeId: string) => void;
+  onDuplicate?: (nodeId: string) => void;
   [key: string]: unknown;
 };
 
@@ -28,7 +32,7 @@ const handleStyle = {
  * WorkflowNode - A custom React Flow node that renders dynamic input/output handles
  * based on the node's data.input and data.output arrays
  */
-export const WorkflowNode: FC<XYNodeProps<WorkflowNodeType>> = memo(({ data, selected }) => {
+export const WorkflowNode: FC<XYNodeProps<WorkflowNodeType>> = memo(({ id, data, selected }) => {
   const inputs = data.input || [];
   const outputs = data.output || [];
 
@@ -76,6 +80,7 @@ export const WorkflowNode: FC<XYNodeProps<WorkflowNodeType>> = memo(({ data, sel
 
   return (
     <div
+      className="workflow-node"
       style={{
         position: 'relative',
         padding: '10px 20px',
@@ -91,6 +96,15 @@ export const WorkflowNode: FC<XYNodeProps<WorkflowNodeType>> = memo(({ data, sel
         opacity: data.disabled ? 0.5 : 1,
       }}
     >
+      {/* Action toolbar (shown when selected) */}
+      {selected && (data.onDelete || data.onEdit || data.onDuplicate) && (
+        <NodeActionToolbar
+          nodeId={id}
+          onDelete={data.onDelete}
+          onEdit={data.onEdit}
+          onDuplicate={data.onDuplicate}
+        />
+      )}
       {/* Input handles (left side) */}
       {inputHandles.map((handle) => (
         <Handle
