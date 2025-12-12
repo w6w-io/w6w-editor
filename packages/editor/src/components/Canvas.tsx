@@ -16,8 +16,9 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { ContextMenu, type ContextMenuItem } from './ui/ContextMenu';
+import type { ContextMenuCallbacks } from '../types';
 
-export interface CanvasProps {
+export interface CanvasProps extends ContextMenuCallbacks {
   /**
    * Initial nodes on the canvas
    */
@@ -74,6 +75,10 @@ const CanvasInner: FC<CanvasProps> = ({
   showBackground = true,
   backgroundVariant = BackgroundVariant.Dots,
   className = '',
+  onAddNodeRequest,
+  onNodeEdit,
+  onNodeDuplicate,
+  onNodeDelete,
 }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -98,53 +103,74 @@ const CanvasInner: FC<CanvasProps> = ({
         {
           label: 'Add node',
           onClick: () => {
-            const newNode: Node = {
-              id: `node-${Date.now()}`,
-              type: 'default',
-              position,
-              data: { label: 'New Node' },
-            };
-            setNodes((nds) => [...nds, newNode]);
-            onChange?.([...nodes, newNode], edges);
+            // Call callback if provided, otherwise fallback to default behavior
+            if (onAddNodeRequest) {
+              onAddNodeRequest(position);
+            } else {
+              // Fallback: create node directly for standalone usage
+              const newNode: Node = {
+                id: `node-${Date.now()}`,
+                type: 'default',
+                position,
+                data: { label: 'New Node' },
+              };
+              setNodes((nds) => [...nds, newNode]);
+              onChange?.([...nodes, newNode], edges);
+            }
           },
         },
-        // {
-        //   label: 'Add connection',
-        //   onClick: () => {
-        //     console.log('Add connection clicked');
-        //   },
-        // },
-        // {
-        //   label: 'Add variable',
-        //   onClick: () => {
-        //     console.log('Add variable clicked');
-        //   },
-        // },
       ],
     });
-  }, [screenToFlowPosition, setNodes, nodes, edges, onChange]);
+  }, [screenToFlowPosition, setNodes, nodes, edges, onChange, onAddNodeRequest]);
 
   // Handle context menu on node
   const onNodeContextMenu = useCallback((event: any, node: Node) => {
     event.preventDefault();
     event.stopPropagation();
 
+    // Build context menu items based on available callbacks
+    const menuItems: ContextMenuItem[] = [];
+
+    if (onNodeEdit) {
+      menuItems.push({
+        label: 'Edit',
+        onClick: () => onNodeEdit(node.id),
+      });
+    }
+
+    if (onNodeDuplicate) {
+      menuItems.push({
+        label: 'Duplicate',
+        onClick: () => onNodeDuplicate(node.id),
+      });
+    }
+
+    // Always show delete option (either callback or default behavior)
+    if (onNodeDelete) {
+      menuItems.push({
+        label: 'Delete',
+        destructive: true,
+        onClick: () => onNodeDelete(node.id),
+      });
+    } else {
+      // Fallback: delete node directly for standalone usage
+      menuItems.push({
+        label: 'Delete',
+        destructive: true,
+        onClick: () => {
+          const newNodes = nodes.filter((n) => n.id !== node.id);
+          setNodes(newNodes);
+          onChange?.(newNodes, edges);
+        },
+      });
+    }
+
     setContextMenu({
       x: event.clientX,
       y: event.clientY,
-      items: [
-        {
-          label: 'Delete node',
-          destructive: true,
-          onClick: () => {
-            const newNodes = nodes.filter((n) => n.id !== node.id);
-            setNodes(newNodes);
-            onChange?.(newNodes, edges);
-          },
-        },
-      ],
+      items: menuItems,
     });
-  }, [nodes, edges, setNodes, onChange]);
+  }, [nodes, edges, setNodes, onChange, onNodeEdit, onNodeDuplicate, onNodeDelete]);
 
   // Handle context menu on edge
   const onEdgeContextMenu = useCallback((event: any, edge: Edge) => {

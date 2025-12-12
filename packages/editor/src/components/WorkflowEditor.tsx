@@ -12,10 +12,10 @@ import {
   type NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { Workflow } from '../types';
+import type { Workflow, ContextMenuCallbacks } from '../types';
 import { WorkflowNode } from './nodes/WorkflowNode';
 
-export interface WorkflowEditorProps {
+export interface WorkflowEditorProps extends ContextMenuCallbacks {
   initialWorkflow?: Workflow;
   onChange?: (workflow: Workflow) => void;
   className?: string;
