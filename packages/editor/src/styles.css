@@ -427,3 +427,23 @@
 .editor-toolbar.dark .editor-toolbar-button:hover {
   background-color: #374151;
 }
+
+.editor-toolbar-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.editor-toolbar-button:disabled:hover {
+  background-color: transparent;
+}
+
+.editor-toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background-color: #e5e7eb;
+  margin: 0 4px;
+}
+
+.editor-toolbar.dark .editor-toolbar-separator {
+  background-color: #4b5563;
+}

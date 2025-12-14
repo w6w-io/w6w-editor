@@ -5,12 +5,14 @@ import {
   Background,
   Controls,
   MiniMap,
-  useNodesState,
-  useEdgesState,
   addEdge,
   useReactFlow,
   useViewport,
+  applyNodeChanges,
+  applyEdgeChanges,
   type Connection,
+  type NodeChange,
+  type EdgeChange,
   Panel,
   type NodeTypes,
   type Node,
@@ -21,6 +23,7 @@ import '@xyflow/react/dist/style.css';
 import type { Workflow, ContextMenuCallbacks, PendingConnection } from '../types';
 import { WorkflowNode } from './nodes/WorkflowNode';
 import { ContextMenu, type ContextMenuItem } from './ui/ContextMenu';
+import { useWorkflowHistory } from '../hooks/useWorkflowHistory';
 import '../styles.css';
 
 /**
@@ -61,6 +64,22 @@ export interface WorkflowEditorHandle {
     nodeData: Record<string, unknown>,
     connection: { sourceNodeId: string; sourceHandle?: string } | { targetNodeId: string; targetHandle?: string }
   ) => void;
+  /**
+   * Undo the last action
+   */
+  undo: () => void;
+  /**
+   * Redo the last undone action
+   */
+  redo: () => void;
+  /**
+   * Whether undo is available
+   */
+  canUndo: boolean;
+  /**
+   * Whether redo is available
+   */
+  canRedo: boolean;
 }
 
 export interface WorkflowEditorProps extends ContextMenuCallbacks {
@@ -161,8 +180,55 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
     items: ContextMenuItem[];
   } | null>(null);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialWorkflow.nodes as Node[]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialWorkflow.edges as Edge[]);
+  // Use history hook for undo/redo support
+  const {
+    nodes,
+    edges,
+    setNodes,
+    setEdges,
+    setNodesWithoutHistory,
+    updateWorkflow,
+    takeSnapshot,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useWorkflowHistory(initialWorkflow.nodes as Node[], initialWorkflow.edges as Edge[]);
+
+  // Track if we're in the middle of a drag operation
+  const isDraggingRef = useRef(false);
+
+  // Handle node changes from React Flow (positions, selections, etc.)
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    const hasDragStart = changes.some(c => c.type === 'position' && 'dragging' in c && c.dragging === true);
+    const hasDragEnd = changes.some(c => c.type === 'position' && 'dragging' in c && c.dragging === false);
+
+    // Starting a drag - take snapshot before changes
+    if (hasDragStart && !isDraggingRef.current) {
+      isDraggingRef.current = true;
+      takeSnapshot();
+    }
+
+    // Apply changes without recording to history (we already took snapshot)
+    setNodesWithoutHistory(prev => applyNodeChanges(changes, prev));
+
+    // Drag ended
+    if (hasDragEnd) {
+      isDraggingRef.current = false;
+    }
+  }, [takeSnapshot, setNodesWithoutHistory]);
+
+  // Handle edge changes from React Flow
+  const onEdgesChange = useCallback((changes: EdgeChange[]) => {
+    // For edge removals, we want to record history
+    const hasRemoval = changes.some(c => c.type === 'remove');
+    if (hasRemoval) {
+      setEdges(prev => applyEdgeChanges(changes, prev));
+    } else {
+      // For selections and other non-destructive changes, don't record
+      setEdges(prev => applyEdgeChanges(changes, prev));
+    }
+  }, [setEdges]);
 
   // Calculate which nodes have input/output connections
   const nodeConnectionStatus = useMemo(() => {
@@ -189,11 +255,11 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
     const newEdges = edges.filter(
       (e) => e.source !== nodeId && e.target !== nodeId
     );
-    setNodes(newNodes);
-    setEdges(newEdges);
+    // Use updateWorkflow to record both changes as single history entry
+    updateWorkflow(newNodes, newEdges);
     onChange?.({ nodes: newNodes, edges: newEdges });
     onNodeDelete?.(nodeId);
-  }, [nodes, edges, setNodes, setEdges, onChange, onNodeDelete]);
+  }, [nodes, edges, updateWorkflow, onChange, onNodeDelete]);
 
   // Enrich nodes with callbacks and connection status
   const enrichedNodes = useMemo(() => {
@@ -282,28 +348,6 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
     [screenToFlowPosition, nodes, edges, setNodes, setEdges, onChange, onConnectionDropped]
   );
 
-  const handleNodesChange = useCallback(
-    (changes: any) => {
-      onNodesChange(changes);
-      // Notify parent of changes after state update
-      setTimeout(() => {
-        onChange?.({ nodes, edges });
-      }, 0);
-    },
-    [onNodesChange, onChange, nodes, edges]
-  );
-
-  const handleEdgesChange = useCallback(
-    (changes: any) => {
-      onEdgesChange(changes);
-      // Notify parent of changes after state update
-      setTimeout(() => {
-        onChange?.({ nodes, edges });
-      }, 0);
-    },
-    [onEdgesChange, onChange, nodes, edges]
-  );
-
   // Context menu handlers
   const onPaneContextMenu = useCallback((event: any) => {
     event.preventDefault();
@@ -364,8 +408,7 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
           const newEdges = edges.filter(
             (e) => e.source !== node.id && e.target !== node.id
           );
-          setNodes(newNodes);
-          setEdges(newEdges);
+          updateWorkflow(newNodes, newEdges);
           onChange?.({ nodes: newNodes, edges: newEdges });
           onNodeDelete(node.id);
           setContextMenu(null);
@@ -380,7 +423,7 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
         items: menuItems,
       });
     }
-  }, [nodes, edges, setNodes, setEdges, onChange, onNodeEdit, onNodeDuplicate, onNodeDelete]);
+  }, [nodes, edges, updateWorkflow, onChange, onNodeEdit, onNodeDuplicate, onNodeDelete]);
 
   const onEdgeContextMenu = useCallback((event: any, edge: Edge) => {
     event.preventDefault();
@@ -440,7 +483,6 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
       };
 
       const newNodes = [...nodes, newNode];
-      setNodes(newNodes);
 
       // Create edge from source to new node
       const newEdge = {
@@ -450,7 +492,9 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
         sourceHandle: pendingConnection.sourceHandle || null,
       };
       const newEdges = [...edges, newEdge];
-      setEdges(newEdges);
+
+      // Use updateWorkflow to record both changes as single history entry
+      updateWorkflow(newNodes, newEdges);
 
       // Clear pending connection
       setPendingConnection(null);
@@ -458,7 +502,7 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
       // Notify parent of changes
       onChange?.({ nodes: newNodes, edges: newEdges });
     },
-    [pendingConnection, nodes, edges, setNodes, setEdges, onChange]
+    [pendingConnection, nodes, edges, updateWorkflow, onChange]
   );
 
   // Method to cancel a pending connection without creating a node
@@ -637,11 +681,12 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
       const newNodes = [...nodes, newNode];
       const newEdges = [...edges, newEdge];
       console.log('[Editor] New state - nodes:', newNodes.length, 'edges:', newEdges.length);
-      setNodes(newNodes);
-      setEdges(newEdges);
+
+      // Use updateWorkflow to record both changes as single history entry
+      updateWorkflow(newNodes, newEdges);
       onChange?.({ nodes: newNodes, edges: newEdges });
     },
-    [nodes, edges, setNodes, setEdges, onChange]
+    [nodes, edges, updateWorkflow, onChange]
   );
 
   // Story 03: Track modifier key state (Cmd/Ctrl)
@@ -689,11 +734,27 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
     }
   }, []);
 
-  // Keyboard shortcut for save (Cmd+S / Ctrl+S)
+  // Keyboard shortcuts for save and undo/redo
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Check for Cmd+S (Mac) or Ctrl+S (Windows/Linux)
-      if ((event.metaKey || event.ctrlKey) && event.key === 's') {
+      const isMod = event.metaKey || event.ctrlKey;
+
+      // Undo: Cmd/Ctrl+Z (without Shift)
+      if (isMod && event.key === 'z' && !event.shiftKey) {
+        event.preventDefault();
+        undo();
+        return;
+      }
+
+      // Redo: Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y
+      if (isMod && ((event.key === 'z' && event.shiftKey) || event.key === 'y')) {
+        event.preventDefault();
+        redo();
+        return;
+      }
+
+      // Save: Cmd/Ctrl+S
+      if (isMod && event.key === 's') {
         event.preventDefault();
         if (onSave) {
           onSave(getWorkflow());
@@ -705,7 +766,7 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onSave, getWorkflow]);
+  }, [undo, redo, onSave, getWorkflow]);
 
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
@@ -716,7 +777,11 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
     autoArrange,
     addNode,
     addNodeWithEdge,
-  }), [completePendingConnection, cancelPendingConnection, getPendingConnection, getWorkflow, autoArrange, addNode, addNodeWithEdge]);
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  }), [completePendingConnection, cancelPendingConnection, getPendingConnection, getWorkflow, autoArrange, addNode, addNodeWithEdge, undo, redo, canUndo, canRedo]);
 
   return (
     <div
@@ -728,8 +793,8 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
         nodes={enrichedNodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        onNodesChange={handleNodesChange}
-        onEdgesChange={handleEdgesChange}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onConnectEnd={onConnectEnd}
         onPaneContextMenu={onPaneContextMenu}
@@ -768,9 +833,54 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
             <strong>W6W Workflow Editor</strong>
           </div>
         </Panel>
-        {/* Editor Toolbar - Arrange button */}
+        {/* Editor Toolbar */}
         <Panel position="bottom-left" className="editor-toolbar-panel">
           <div className={`editor-toolbar ${isDark ? 'dark' : ''}`}>
+            {/* Undo button */}
+            <button
+              className="editor-toolbar-button"
+              onClick={undo}
+              disabled={!canUndo}
+              title="Undo (Cmd/Ctrl+Z)"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 7v6h6" />
+                <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+              </svg>
+            </button>
+            {/* Redo button */}
+            <button
+              className="editor-toolbar-button"
+              onClick={redo}
+              disabled={!canRedo}
+              title="Redo (Cmd/Ctrl+Shift+Z)"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 7v6h-6" />
+                <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
+              </svg>
+            </button>
+            {/* Separator */}
+            <div className="editor-toolbar-separator" />
+            {/* Auto-arrange button */}
             <button
               className="editor-toolbar-button"
               onClick={autoArrange}
