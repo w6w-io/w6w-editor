@@ -1,4 +1,4 @@
-import { useCallback, useState, forwardRef, useImperativeHandle, useMemo } from 'react';
+import { useCallback, useState, forwardRef, useImperativeHandle, useMemo, useEffect } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -97,6 +97,11 @@ export interface WorkflowEditorProps extends ContextMenuCallbacks {
    * Callback when user clicks the "+" button on a node handle to add a connected node
    */
   onAddNodeFromHandle?: (nodeId: string, handleType: 'source' | 'target', handleId?: string) => void;
+  /**
+   * Callback when user triggers save (Cmd+S / Ctrl+S)
+   * The callback receives the current workflow state
+   */
+  onSave?: (workflow: Workflow) => void;
 }
 
 // Define custom node types outside component to prevent re-renders
@@ -122,6 +127,7 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
   onNodeDuplicate,
   onAddNodeRequest,
   onAddNodeFromHandle,
+  onSave,
 }, ref) => {
   const isDark = colorMode === 'dark' || (colorMode === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
@@ -533,6 +539,24 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
     onChange?.({ nodes: newNodes, edges });
   }, [nodes, edges, setNodes, onChange]);
 
+  // Keyboard shortcut for save (Cmd+S / Ctrl+S)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for Cmd+S (Mac) or Ctrl+S (Windows/Linux)
+      if ((event.metaKey || event.ctrlKey) && event.key === 's') {
+        event.preventDefault();
+        if (onSave) {
+          onSave(getWorkflow());
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onSave, getWorkflow]);
+
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
     completePendingConnection,
@@ -575,6 +599,32 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
             color: isDark ? '#e5e7eb' : '#374151'
           }}>
             <strong>W6W Workflow Editor</strong>
+          </div>
+        </Panel>
+        {/* Editor Toolbar - Arrange button */}
+        <Panel position="bottom-left" className="editor-toolbar-panel">
+          <div className={`editor-toolbar ${isDark ? 'dark' : ''}`}>
+            <button
+              className="editor-toolbar-button"
+              onClick={autoArrange}
+              title="Auto-arrange nodes"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+            </button>
           </div>
         </Panel>
       </ReactFlow>
