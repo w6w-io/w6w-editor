@@ -1,29 +1,42 @@
 /**
  * Core types for the W6W workflow editor
+ *
+ * The editor uses schema-compatible types for its public API.
+ * Internally, it converts to/from React Flow format as needed.
  */
 
-export interface Node {
-  id: string;
-  type?: string;
-  position: {
-    x: number;
-    y: number;
-  };
-  data: Record<string, unknown>;
-}
+// Export explicit schema-compatible types
+// These match the @w6w/schema structure but are explicitly defined
+// to avoid issues with Zod type inference
+export type {
+  Workflow,
+  Node,
+  Edge,
+  Variable,
+  NodeType,
+  Position,
+} from './schema';
 
-export interface Edge {
-  id: string;
-  source: string;
-  target: string;
-  sourceHandle?: string | null;
-  targetHandle?: string | null;
-}
+// Re-export Zod schemas for runtime validation if needed
+export { nodeTypeEnum } from '@w6w/schema';
 
-export interface Workflow {
-  nodes: Node[];
-  edges: Edge[];
-}
+// Node types - coupled with schema
+export type {
+  WorkflowNodeData,
+  WorkflowNodeType,
+  SchemaNodeFields,
+  EditorNodeFields,
+} from './node';
+export { NODE_TYPES, isValidNodeType, getNodeType } from './node';
+// Re-export NodeType from schema.ts as the canonical one
+export type { NodeType as SchemaNodeType } from './schema';
+
+// Internal React Flow types (for editor internals)
+export type {
+  ReactFlowNode,
+  ReactFlowEdge,
+  ReactFlowWorkflow,
+} from '../utils/transformWorkflow';
 
 /**
  * Pending connection state for drag-to-add node functionality
@@ -57,7 +70,7 @@ export interface EdgeValidation {
     target: string;
     sourceHandle?: string | null;
     targetHandle?: string | null;
-  }, nodes: Node[], edges: Edge[]) => boolean;
+  }, nodes: import('@xyflow/react').Node[], edges: import('@xyflow/react').Edge[]) => boolean;
 }
 
 /**
