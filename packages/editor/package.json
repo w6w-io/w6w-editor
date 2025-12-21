@@ -62,11 +62,9 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.0",
+    "@w6w/schema": "workspace:^",
     "@xyflow/react": "^12.8.6",
     "zod": "^4.1.12"
-  },
-  "optionalDependencies": {
-    "@w6w-io/schema": "workspace:^"
   },
   "devDependencies": {
     "@storybook/addon-docs": "^10.1.6",
