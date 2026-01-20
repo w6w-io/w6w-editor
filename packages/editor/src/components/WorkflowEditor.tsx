@@ -54,6 +54,14 @@ export interface WorkflowEditorHandle {
    */
   getWorkflow: () => { nodes: ReactFlowNode[]; edges: ReactFlowEdge[] };
   /**
+   * Get a specific node by ID
+   */
+  getNode: (nodeId: string) => ReactFlowNode | undefined;
+  /**
+   * Update a node's data
+   */
+  updateNode: (nodeId: string, nodeData: Record<string, unknown>) => void;
+  /**
    * Auto-arrange nodes in a horizontal layout
    */
   autoArrange: () => void;
@@ -726,6 +734,35 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
     [nodes, edges, updateWorkflow, onChange, toWorkflowFormat]
   );
 
+  // Method to get a specific node by ID
+  const getNode = useCallback(
+    (nodeId: string): ReactFlowNode | undefined => {
+      return nodes.find(n => n.id === nodeId) as ReactFlowNode | undefined;
+    },
+    [nodes]
+  );
+
+  // Method to update a node's data
+  const updateNode = useCallback(
+    (nodeId: string, nodeData: Record<string, unknown>) => {
+      const newNodes = nodes.map(node => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              ...nodeData,
+            },
+          };
+        }
+        return node;
+      });
+      setNodes(newNodes);
+      onChange?.(toWorkflowFormat(newNodes, edges));
+    },
+    [nodes, edges, setNodes, onChange, toWorkflowFormat]
+  );
+
   // Story 03: Track modifier key state (Cmd/Ctrl)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -811,6 +848,8 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
     cancelPendingConnection,
     getPendingConnection,
     getWorkflow,
+    getNode,
+    updateNode,
     autoArrange,
     addNode,
     addNodeWithEdge,
@@ -818,7 +857,7 @@ const WorkflowEditorInner = forwardRef<WorkflowEditorHandle, WorkflowEditorProps
     redo,
     canUndo,
     canRedo,
-  }), [completePendingConnection, cancelPendingConnection, getPendingConnection, getWorkflow, autoArrange, addNode, addNodeWithEdge, undo, redo, canUndo, canRedo]);
+  }), [completePendingConnection, cancelPendingConnection, getPendingConnection, getWorkflow, getNode, updateNode, autoArrange, addNode, addNodeWithEdge, undo, redo, canUndo, canRedo]);
 
   return (
     <div

@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.0",
-    "@w6w/schema": "workspace:^",
+    "@w6w/schema": "file:../schema",
     "@xyflow/react": "^12.8.6",
     "zod": "^4.1.12"
   },
